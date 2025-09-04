@@ -36,7 +36,7 @@ jobs:
           echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
           echo "REPOSITORY_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
 
-      - name: Create WebContainer HTML
+      - name: Create WebContainer HTML with Dual Terminals
         run: |
           mkdir -p deploy
           cat > deploy/nginx.conf << 'EOF'
@@ -61,7 +61,7 @@ jobs:
           <html>
           <head>
               <meta charset="utf-8">
-              <title>WebContainer Terminal - PR #${{ github.event.pull_request.number }}</title>
+              <title>WebContainer Dual Terminal - PR #${{ github.event.pull_request.number }}</title>
               <style>
                   body {
                       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -70,8 +70,13 @@ jobs:
                       background: #f6f8fa;
                   }
                   .container {
-                      max-width: 800px;
+                      max-width: 1200px;
                       margin: 0 auto;
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 20px;
+                  }
+                  .terminal-container {
                       background: white;
                       border-radius: 8px;
                       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -82,79 +87,289 @@ jobs:
                       color: white;
                       padding: 15px 20px;
                       font-weight: 600;
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
                   }
+                  .header.auto { background: #0969da; }
+                  .header.interactive { background: #1a7f37; }
                   .terminal {
                       background: #1e1e1e;
                       color: #f8f8f2;
                       padding: 20px;
                       font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-                      font-size: 14px;
-                      line-height: 1.5;
-                      min-height: 200px;
+                      font-size: 12px;
+                      line-height: 1.4;
+                      height: 500px;
                       white-space: pre-wrap;
-                      overflow-x: auto;
+                      overflow-y: auto;
+                      overflow-x: hidden;
+                  }
+                  .input-area {
+                      background: #2d2d2d;
+                      border-top: 1px solid #444;
+                      padding: 10px 20px;
+                      display: flex;
+                      align-items: center;
+                      gap: 10px;
+                  }
+                  .command-input {
+                      flex: 1;
+                      background: transparent;
+                      border: none;
+                      color: #f8f8f2;
+                      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                      font-size: 12px;
+                      outline: none;
+                  }
+                  .command-input::placeholder {
+                      color: #666;
                   }
                   .loading { color: #61dafb; }
                   .error { color: #ff6b6b; }
                   .success { color: #51cf66; }
-                  .command { color: #f8f8f2; }
-                  .output { color: #a8ff60; }
+                  .command { color: #f1fa8c; }
+                  .output { color: #f8f8f2; }
+                  .info { color: #8be9fd; }
                   .status {
                       background: #f1f3f4;
-                      padding: 15px 20px;
+                      padding: 10px 20px;
                       border-top: 1px solid #e1e4e8;
-                      font-size: 14px;
+                      font-size: 12px;
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                  }
+                  .port-link {
+                      background: #0969da;
+                      color: white;
+                      padding: 4px 8px;
+                      border-radius: 4px;
+                      text-decoration: none;
+                      font-size: 11px;
+                      margin-left: 10px;
+                  }
+                  .port-link:hover {
+                      background: #0550ae;
+                  }
+                  @media (max-width: 768px) {
+                      .container {
+                          grid-template-columns: 1fr;
+                      }
                   }
               </style>
           </head>
           <body>
               <div class="container">
-                  <div class="header">
-                      🌐 WebContainer Terminal - PR #${{ github.event.pull_request.number }}
+                  <!-- Auto Terminal -->
+                  <div class="terminal-container">
+                      <div class="header auto">
+                          <span>🤖 Auto Setup Terminal</span>
+                          <span id="auto-status">Initializing...</span>
+                      </div>
+                      <div class="terminal" id="auto-terminal">
+                          <div class="loading">Loading WebContainer for auto setup...</div>
+                      </div>
+                      <div class="status">
+                          <span id="auto-progress">Preparing to clone and build...</span>
+                          <span id="port-info"></span>
+                      </div>
                   </div>
-                  <div class="terminal" id="terminal">
-                      <div class="loading">Loading WebContainer...</div>
-                  </div>
-                  <div class="status" id="status">
-                      Status: Initializing...
+
+                  <!-- Interactive Terminal -->
+                  <div class="terminal-container">
+                      <div class="header interactive">
+                          <span>💻 Interactive Terminal</span>
+                          <span id="interactive-status">Ready</span>
+                      </div>
+                      <div class="terminal" id="interactive-terminal">
+                          <div class="info">Interactive terminal ready. Type commands below:</div>
+                      </div>
+                      <div class="input-area">
+                          <span style="color: #51cf66;">$</span>
+                          <input type="text" class="command-input" id="command-input" placeholder="Enter command..." disabled>
+                      </div>
+                      <div class="status">
+                          <span id="interactive-progress">Waiting for WebContainer...</span>
+                      </div>
                   </div>
               </div>
 
               <script type="module">
                   import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.5.1/dist/index.js';
-                  
-                  const terminal = document.getElementById('terminal');
-                  const status = document.getElementById('status');
-                  
-                  async function runWebContainer() {
+          
+                  const autoTerminal = document.getElementById('auto-terminal');
+                  const interactiveTerminal = document.getElementById('interactive-terminal');
+                  const autoStatus = document.getElementById('auto-status');
+                  const interactiveStatus = document.getElementById('interactive-status');
+                  const autoProgress = document.getElementById('auto-progress');
+                  const interactiveProgress = document.getElementById('interactive-progress');
+                  const commandInput = document.getElementById('command-input');
+                  const portInfo = document.getElementById('port-info');
+          
+                  let webcontainerInstance;
+                  let currentPort = null;
+          
+                  function appendToTerminal(terminal, content, className = 'output') {
+                      const div = document.createElement('div');
+                      div.className = className;
+                      div.textContent = content;
+                      terminal.appendChild(div);
+                      terminal.scrollTop = terminal.scrollHeight;
+                  }
+          
+                  function appendCommand(terminal, command) {
+                      appendToTerminal(terminal, `$ ${command}`, 'command');
+                  }
+          
+                  async function runAutoSetup() {
                       try {
-                          status.textContent = 'Status: Booting WebContainer...';
-                          
-                          const webcontainer = await WebContainer.boot();
-                          
-                          status.textContent = 'Status: WebContainer ready, running command...';
-                          terminal.innerHTML = '<div class="command">$ echo "hello-world!"</div>';
-                          
-                          const process = await webcontainer.spawn('echo', ['hello-world!']);
-                          const { code } = await process.exit;
-                          
-                          // Simple output capture
-                          terminal.innerHTML += '<div class="output">hello-world!</div>';
-                          
-                          if (code === 0) {
-                              status.innerHTML = '<span class="success">✅ Command executed successfully</span> | Exit Code: ' + code;
-                          } else {
-                              status.innerHTML = '<span class="error">❌ Command failed</span> | Exit Code: ' + code;
-                          }
-                          
+                          autoStatus.textContent = 'Booting...';
+                          autoTerminal.innerHTML = '';
+                          appendToTerminal(autoTerminal, 'Booting WebContainer...', 'loading');
+          
+                          webcontainerInstance = await WebContainer.boot();
+          
+                          autoStatus.textContent = 'Running setup...';
+                          appendToTerminal(autoTerminal, 'WebContainer ready!', 'success');
+          
+                          // Enable interactive terminal
+                          interactiveStatus.textContent = 'Ready';
+                          interactiveProgress.textContent = 'Ready for commands';
+                          commandInput.disabled = false;
+          
+                          const repoUrl = '${{ github.repository }}';
+                          const branch = '${{ github.head_ref }}';
+                          const cloneUrl = `https://github.com/${repoUrl}.git`;
+          
+                          // Step 1: Clone repository
+                          autoProgress.textContent = 'Step 1/4: Cloning repository...';
+                          appendCommand(autoTerminal, `git clone -b ${branch} ${cloneUrl} project`);
+          
+                          const cloneProcess = await webcontainerInstance.spawn('git', ['clone', '-b', branch, cloneUrl, 'project']);
+                          cloneProcess.output.pipeTo(new WritableStream({
+                              write(data) {
+                                  appendToTerminal(autoTerminal, data);
+                              }
+                          }));
+                          await cloneProcess.exit;
+                          appendToTerminal(autoTerminal, 'Repository cloned successfully!', 'success');
+          
+                          // Step 2: Install dependencies
+                          autoProgress.textContent = 'Step 2/4: Installing dependencies...';
+                          appendCommand(autoTerminal, 'cd project && bun install');
+          
+                          const installProcess = await webcontainerInstance.spawn('bun', ['install'], {
+                              cwd: '/project'
+                          });
+                          installProcess.output.pipeTo(new WritableStream({
+                              write(data) {
+                                  appendToTerminal(autoTerminal, data);
+                              }
+                          }));
+                          await installProcess.exit;
+                          appendToTerminal(autoTerminal, 'Dependencies installed!', 'success');
+          
+                          // Step 3: Build project
+                          autoProgress.textContent = 'Step 3/4: Building project...';
+                          appendCommand(autoTerminal, 'bun run build');
+          
+                          const buildProcess = await webcontainerInstance.spawn('bun', ['run', 'build'], {
+                              cwd: '/project'
+                          });
+                          buildProcess.output.pipeTo(new WritableStream({
+                              write(data) {
+                                  appendToTerminal(autoTerminal, data);
+                              }
+                          }));
+                          await buildProcess.exit;
+                          appendToTerminal(autoTerminal, 'Project built successfully!', 'success');
+          
+                          // Step 4: Start server
+                          autoProgress.textContent = 'Step 4/4: Starting server...';
+                          appendCommand(autoTerminal, 'bun run start');
+          
+                          const startProcess = await webcontainerInstance.spawn('bun', ['run', 'start'], {
+                              cwd: '/project'
+                          });
+          
+                          // Listen for server ready
+                          webcontainerInstance.on('server-ready', (port, url) => {
+                              currentPort = port;
+                              appendToTerminal(autoTerminal, `Server started on port ${port}!`, 'success');
+                              appendToTerminal(autoTerminal, `Opening ${url} in new tab...`, 'info');
+          
+                              // Open in new tab
+                              window.open(url, '_blank');
+          
+                              // Update port info
+                              portInfo.innerHTML = `<a href="${url}" target="_blank" class="port-link">Open :${port}</a>`;
+          
+                              autoStatus.textContent = 'Running';
+                              autoProgress.textContent = `Server running on port ${port}`;
+                          });
+          
+                          startProcess.output.pipeTo(new WritableStream({
+                              write(data) {
+                                  appendToTerminal(autoTerminal, data);
+                              }
+                          }));
+          
                       } catch (error) {
-                          terminal.innerHTML += '<div class="error">Error: ' + error.message + '</div>';
-                          status.innerHTML = '<span class="error">❌ WebContainer failed to start</span>';
-                          console.error('WebContainer error:', error);
+                          autoStatus.textContent = 'Error';
+                          appendToTerminal(autoTerminal, `Error: ${error.message}`, 'error');
+                          autoProgress.textContent = 'Setup failed';
+                          console.error('Auto setup error:', error);
                       }
                   }
-                  
-                  runWebContainer();
+          
+                  // Interactive terminal functionality
+                  async function executeCommand(command) {
+                      if (!webcontainerInstance) {
+                          appendToTerminal(interactiveTerminal, 'WebContainer not ready yet...', 'error');
+                          return;
+                      }
+          
+                      appendCommand(interactiveTerminal, command);
+          
+                      try {
+                          const args = command.split(' ');
+                          const cmd = args.shift();
+          
+                          const process = await webcontainerInstance.spawn(cmd, args, {
+                              cwd: '/project'
+                          });
+          
+                          process.output.pipeTo(new WritableStream({
+                              write(data) {
+                                  appendToTerminal(interactiveTerminal, data);
+                              }
+                          }));
+          
+                          const { code } = await process.exit;
+          
+                          if (code !== 0) {
+                              appendToTerminal(interactiveTerminal, `Command exited with code ${code}`, 'error');
+                          }
+          
+                      } catch (error) {
+                          appendToTerminal(interactiveTerminal, `Error: ${error.message}`, 'error');
+                      }
+                  }
+          
+                  // Handle command input
+                  commandInput.addEventListener('keypress', (e) => {
+                      if (e.key === 'Enter') {
+                          const command = commandInput.value.trim();
+                          if (command) {
+                              executeCommand(command);
+                              commandInput.value = '';
+                          }
+                      }
+                  });
+          
+                  // Start auto setup
+                  runAutoSetup();
               </script>
           </body>
           </html>
@@ -184,11 +399,6 @@ jobs:
           strategy: basic
           imagepullsecrets: |
             dockerconfigjson-github-com
-          manifests: |
-            ./k8s/deployment.yaml
-            ./k8s/service.yaml
-            ./k8s/ingress.yaml
-            ./k8s/middleware.yaml
           images: ghcr.io/${{ env.REPOSITORY_NAME }}:${{ env.COMMIT_SHA_SHORT }}
 
       - name: Comment PR
@@ -197,16 +407,16 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const issue_number = context.issue.number;
-      
+            
             // Find previous comments from the bot with our marker
             const { data: comments } = await github.rest.issues.listComments({
               owner,
               repo,
               issue_number,
             });
-      
-            const marker = "🌐 WebContainer K8S Terminal Preview";
-      
+            
+            const marker = "🌐 WebContainer Dual Terminal Preview";
+            
             for (const comment of comments) {
               if (
                 comment.user.login === "github-actions[bot]" &&
@@ -219,23 +429,29 @@ jobs:
                 });
               }
             }
-      
+            
             // Add the new comment
             await github.rest.issues.createComment({
               issue_number,
               owner,
               repo,
-              body: `## 🌐 WebContainer Terminal Preview
-                **[📱 Open WebContainer Terminal](${{ github.event.pull_request.number }}.pr.catshoulder.dev)**
-                
-                > This WebContainer runs in your browser using the [WebContainer API](https://webcontainers.io/).
+              body: `## 🌐 WebContainer Dual Terminal Preview
+                **[📱 Open Dual Terminal Interface](https://${{ github.event.pull_request.number }}.pr.catshoulder.dev)**
+            
+                > This WebContainer runs in your browser with two terminals:
                 > 
-                > **Features:**
-                > - ✅ Full terminal access
-                > - ✅ Browser-based execution
-                > - ✅ No server required
-                
+                > **🤖 Auto Setup Terminal:**
+                > - ✅ Auto clones your PR branch
+                > - ✅ Runs \`bun install\`
+                > - ✅ Runs \`bun run build\`
+                > - ✅ Runs \`bun run start\`
+                > - ✅ Opens app in new tab when ready
+                > 
+                > **💻 Interactive Terminal:**
+                > - ✅ Full command line access
+                > - ✅ Real-time command execution
+                > - ✅ Works in parallel with auto setup
+            
                 ---
-                <sup>Preview generated for PR #${{ github.event.pull_request.number }}</sup>`
+                <sup>Dual terminal preview generated for PR #${{ github.event.pull_request.number }}</sup>`
             });
-      
