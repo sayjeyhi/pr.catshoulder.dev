@@ -17,7 +17,6 @@ jobs:
           static_path: ./test/dist
           pkg_manager: bun
           build_command: bun build
-          serve_command: bun start
           port: 3000
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
