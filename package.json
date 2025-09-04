@@ -1,5 +1,5 @@
 {
-  "name": "linguci-github-action",
+  "name": "ui.pr.new",
   "version": "0.1.0",
   "main": "main.js",
   "type": "module",
@@ -9,11 +9,14 @@
   "keywords": [
     "github",
     "action",
+    "ui",
+    "pr",
+    "preview",
     "webcontainer",
     "terminal",
     "pr-comment"
   ],
-  "author": "tajpouria",
+  "author": "sayjeyhi",
   "license": "MIT",
   "description": "GitHub Action for running commands in a WebContainer and posting results as PR comments",
   "engines": {
