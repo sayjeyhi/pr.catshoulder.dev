@@ -399,6 +399,11 @@ jobs:
           strategy: basic
           imagepullsecrets: |
             dockerconfigjson-github-com
+          manifests: |
+            ./k8s/deployment.yaml
+            ./k8s/service.yaml
+            ./k8s/ingress.yaml
+            ./k8s/middleware.yaml
           images: ghcr.io/${{ env.REPOSITORY_NAME }}:${{ env.COMMIT_SHA_SHORT }}
 
       - name: Comment PR
