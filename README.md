@@ -20,25 +20,22 @@ Create a `pr.preview.yml` file in .github/workflows and use the following templa
   with:
     pkg_manager: bun
     build_command: bun build
-    base_path: ./frontend
-    static_path: ./frontend/dist
+    serve_command: bun start
+    base_path: ./test
+    static_path: ./test/dist
     port: 3000
-    pr_comment: true
-    pr_comment_message: "Your preview is ready! [Click here](%preview_url%) to view it."
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-| Option               | Description                                  | Required                                                                       | Example                                                          |
-|----------------------|----------------------------------------------|--------------------------------------------------------------------------------|------------------------------------------------------------------|
-| `pkg_manager`        | Package manager to use                       | Yes                                                                            | `npm`, `yarn`, `pnpm`, `bun`                                     |
-| `build_command`      | Command to build the project                 | Yes                                                                            | `npm run build`, `yarn build`, `pnpm build`, `bun build`         |
-| `base_path`          | Base path of the project                     | No (default: `.`)                                                              | `./frontend`, `./app`                                            |
-| `static_path`        | Path to the built static files               | Yes                                                                            | `./frontend/dist`, `./build`, `./public`                         |
-| `port`               | Port to run the preview server               | No (default: `3000`)                                                           | `3000`, `8080`                                                   |
-| `pr_comment`         | Whether to comment the preview URL on the PR | No (default: `false`)                                                          | `true`, `false`                                                  |
-| `pr_comment_message` | Message to include in the PR comment         | No (default: `Your preview is ready! [Click here](%preview_url%) to view it.`) | `Your preview is ready! [Click here](%preview_url%) to view it.` |
-
+| Option               | Description                                  | Required                                                                       | Example                                                           |
+|----------------------|----------------------------------------------|--------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| `pkg_manager`        | Package manager to use                       | Yes                                                                            | `npm`, `yarn`, `pnpm`, `bun`                                      |
+| `build_command`      | Command to build the project                 | Yes                                                                            | `npm run build`, `yarn build`, `pnpm build`, `bun build`          |
+| `serve_command`      | Command to serve the project                 | Yes                                                                            | `npm run start`, `yarn start`, `pnpm start`, `bun start`          |
+| `base_path`          | Base path of the project                     | No (default: `./`)                                                             | `./test`, `./frontend`, `./app`                                   |
+| `static_path`        | Path to the built static files               | Yes                                                                            | `./dist`, `./test/dist`, `./frontend/dist`, `./build`, `./public` |
+| `port`               | Port to run the preview server               | No (default: `3000`)                                                           | `3000`, `8080`                                                    |
 
 ### Set up required secrets
 
