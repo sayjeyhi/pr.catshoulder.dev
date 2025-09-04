@@ -26,7 +26,7 @@ jobs:
         run: |
           mkdir -p pr-${{ github.event.pull_request.number }}
           cat > CNAME << 'EOF'
-            wc.sayjeyhi.com
+            {{ github.event.pull_request.number }}.pr.sayjeyhi.com
           EOF
           cat > pr-${{ github.event.pull_request.number }}/index.html << 'EOF'
           <!DOCTYPE html>
@@ -154,7 +154,7 @@ jobs:
               repo: context.repo.repo,
               body: `## 🌐 WebContainer Terminal Preview
               
-              **[📱 Open WebContainer Terminal](${{ steps.deployment.outputs.page_url }}pr-${{ github.event.pull_request.number }})**
+              **[📱 Open WebContainer Terminal](${{ steps.deployment.outputs.page_url }})**
               
               > This WebContainer runs in your browser using the [WebContainer API](https://webcontainers.io/).
               > 
