@@ -11,10 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: UI PR preview
-        uses: sayjeyhi/ui.pr.new@v0.1.5
+        uses: sayjeyhi/ui.pr.new@v0.1.6
         with:
           base_path: ./test
-          static_path: ./test/dist
           pkg_manager: bun
           build_command: bun build
           port: 3000
