@@ -1,0 +1,23 @@
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: UI PR preview
+        uses: sayjeyhi/ui.pr.new@v0.1.0
+        with:
+          base_path: ./test
+          static_path: ./test/dist
+          pkg_manager: bun
+          build_command: bun build
+          serve_command: bun start
+          port: 3000
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

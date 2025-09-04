@@ -2,9 +2,16 @@ import core from "@actions/core";
 import github from "@actions/github";
 
 async function run() {
+  const basePath = core.getInput("base_path") || "./";
+  const staticPath = core.getInput("static_path") || "./dist";
+  const pkgManager = core.getInput("pkg_manager") || "npm";
+  const buildCommand = core.getInput("build_command") || "npm run build";
+  const serveCommand = core.getInput("serve_command") || "npm run start";
+  const port = core.getInput("port") || "3000";
+  
   try {
     // Read inputs from GitHub Actions
-    const prCommentMessage = "WebContainer Terminal Output:";
+    const prCommentMessage = prBody || "WebContainer Terminal Output:";
 
     // Get the GitHub context
     const context = github.context;
