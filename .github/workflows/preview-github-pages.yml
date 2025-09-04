@@ -9,6 +9,7 @@ permissions:
   pages: write
   id-token: write
   pull-requests: write
+  packages: write
 
 jobs:
   preview-github-pages:
