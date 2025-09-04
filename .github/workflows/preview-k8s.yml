@@ -17,6 +17,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Log in to GHCR (PAT)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: sayjeyhi
+          password: ${{ secrets.GHCR_PAT }}
+
       - name: Kubernetes set context
         uses: Azure/k8s-set-context@v3
         with:
