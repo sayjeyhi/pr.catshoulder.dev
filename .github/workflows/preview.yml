@@ -24,8 +24,11 @@ jobs:
 
       - name: Create WebContainer HTML
         run: |
-          mkdir -p webcontainer-previews
-          cat > webcontainer-previews/pr-${{ github.event.pull_request.number }}.html << 'EOF'
+          mkdir -p pr-${{ github.event.pull_request.number }}
+          cat > CNAME << 'EOF'
+            wc.sayjeyhi.com
+          EOF
+          cat > pr-${{ github.event.pull_request.number }}/index.html << 'EOF'
           <!DOCTYPE html>
           <html>
           <head>
@@ -135,7 +138,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './webcontainer-previews'
+          path: './pr-${{ github.event.pull_request.number }}'
 
       - name: Deploy to GitHub Pages
         id: deployment
@@ -151,7 +154,7 @@ jobs:
               repo: context.repo.repo,
               body: `## 🌐 WebContainer Terminal Preview
               
-              **[📱 Open WebContainer Terminal](${{ steps.deployment.outputs.page_url }}pr-${{ github.event.pull_request.number }}.html)**
+              **[📱 Open WebContainer Terminal](${{ steps.deployment.outputs.page_url }}pr-${{ github.event.pull_request.number }})**
               
               > This WebContainer runs in your browser using the [WebContainer API](https://webcontainers.io/).
               > 
