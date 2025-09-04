@@ -31,6 +31,9 @@ jobs:
       - name: Create WebContainer HTML
         run: |
           mkdir -p pr-${{ github.event.pull_request.number }}
+          cat > pr-${{ github.event.pull_request.number }}/CNAME << 'EOF'
+          wc.sayjeyhi.com
+          EOF
           cat > pr-${{ github.event.pull_request.number }}/index.html << 'EOF'
           <!DOCTYPE html>
           <html>

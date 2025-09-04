@@ -177,6 +177,20 @@ jobs:
             ghcr.io/${{ env.REPOSITORY_NAME }}:${{ env.CURRENT_DATE }}
             ghcr.io/${{ env.REPOSITORY_NAME }}:latest
 
+      - name: Deploy
+        uses: Azure/k8s-deploy@v5.0.1
+        with:
+          action: deploy
+          strategy: basic
+          imagepullsecrets: |
+            dockerconfigjson-github-com
+          manifests: |
+            ./k8s/deployment.yaml
+            ./k8s/service.yaml
+            ./k8s/ingress.yaml
+            ./k8s/middleware.yaml
+          images: ghcr.io/${{ env.REPOSITORY_NAME }}:${{ env.COMMIT_SHA_SHORT }}
+
       - name: Comment PR
         uses: actions/github-script@v7
         with:
