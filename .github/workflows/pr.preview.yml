@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: UI PR preview
-        uses: sayjeyhi/ui.pr.new@v0.1.4
+        uses: sayjeyhi/ui.pr.new@v0.1.5
         with:
           base_path: ./test
           static_path: ./test/dist
