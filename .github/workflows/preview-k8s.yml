@@ -1,0 +1,227 @@
+name: Deploy WebContainer to GitHub Pages
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Kubernetes set context
+        uses: Azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Set commit SHA short
+        run: |
+          echo "COMMIT_SHA_SHORT=${GITHUB_SHA::8}" >> $GITHUB_ENV
+          echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+          echo "REPOSITORY_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+      - name: Create WebContainer HTML
+        run: |
+          mkdir -p deploy
+          cat > deploy/nginx.conf << 'EOF'
+            server {
+              listen 8080;
+              server_name ${{ github.event.pull_request.number }}.pr.catshoulder.dev;
+          
+              add_header Cross-Origin-Opener-Policy "same-origin" always;
+              add_header Cross-Origin-Embedder-Policy "require-corp" always;
+              add_header Cross-Origin-Resource-Policy "cross-origin" always;
+              root /usr/share/nginx/html;
+              index index.html;
+          
+              location / {
+                try_files $uri /index.html;
+              }
+              error_page 404 /index.html;
+            }
+          EOF
+          cat > deploy/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="utf-8">
+              <title>WebContainer Terminal - PR #${{ github.event.pull_request.number }}</title>
+              <style>
+                  body {
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                      margin: 0;
+                      padding: 20px;
+                      background: #f6f8fa;
+                  }
+                  .container {
+                      max-width: 800px;
+                      margin: 0 auto;
+                      background: white;
+                      border-radius: 8px;
+                      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                      overflow: hidden;
+                  }
+                  .header {
+                      background: #24292e;
+                      color: white;
+                      padding: 15px 20px;
+                      font-weight: 600;
+                  }
+                  .terminal {
+                      background: #1e1e1e;
+                      color: #f8f8f2;
+                      padding: 20px;
+                      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+                      font-size: 14px;
+                      line-height: 1.5;
+                      min-height: 200px;
+                      white-space: pre-wrap;
+                      overflow-x: auto;
+                  }
+                  .loading { color: #61dafb; }
+                  .error { color: #ff6b6b; }
+                  .success { color: #51cf66; }
+                  .command { color: #f8f8f2; }
+                  .output { color: #a8ff60; }
+                  .status {
+                      background: #f1f3f4;
+                      padding: 15px 20px;
+                      border-top: 1px solid #e1e4e8;
+                      font-size: 14px;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <div class="header">
+                      🌐 WebContainer Terminal - PR #${{ github.event.pull_request.number }}
+                  </div>
+                  <div class="terminal" id="terminal">
+                      <div class="loading">Loading WebContainer...</div>
+                  </div>
+                  <div class="status" id="status">
+                      Status: Initializing...
+                  </div>
+              </div>
+
+              <script type="module">
+                  import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.5.1/dist/index.js';
+                  
+                  const terminal = document.getElementById('terminal');
+                  const status = document.getElementById('status');
+                  
+                  async function runWebContainer() {
+                      try {
+                          status.textContent = 'Status: Booting WebContainer...';
+                          
+                          const webcontainer = await WebContainer.boot();
+                          
+                          status.textContent = 'Status: WebContainer ready, running command...';
+                          terminal.innerHTML = '<div class="command">$ echo "hello-world!"</div>';
+                          
+                          const process = await webcontainer.spawn('echo', ['hello-world!']);
+                          const { code } = await process.exit;
+                          
+                          // Simple output capture
+                          terminal.innerHTML += '<div class="output">hello-world!</div>';
+                          
+                          if (code === 0) {
+                              status.innerHTML = '<span class="success">✅ Command executed successfully</span> | Exit Code: ' + code;
+                          } else {
+                              status.innerHTML = '<span class="error">❌ Command failed</span> | Exit Code: ' + code;
+                          }
+                          
+                      } catch (error) {
+                          terminal.innerHTML += '<div class="error">Error: ' + error.message + '</div>';
+                          status.innerHTML = '<span class="error">❌ WebContainer failed to start</span>';
+                          console.error('WebContainer error:', error);
+                      }
+                  }
+                  
+                  runWebContainer();
+              </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify GHCR login
+        run: docker info
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ghcr.io/${{ env.REPOSITORY_NAME }}:${{ env.COMMIT_SHA_SHORT }}
+            ghcr.io/${{ env.REPOSITORY_NAME }}:${{ env.CURRENT_DATE }}
+            ghcr.io/${{ env.REPOSITORY_NAME }}:latest
+
+      - name: Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+      
+            // Find previous comments from the bot with our marker
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number,
+            });
+      
+            const marker = "🌐 WebContainer Terminal Preview";
+      
+            for (const comment of comments) {
+              if (
+                comment.user.login === "github-actions[bot]" &&
+                comment.body.includes(marker)
+              ) {
+                await github.rest.issues.deleteComment({
+                  owner,
+                  repo,
+                  comment_id: comment.id,
+                });
+              }
+            }
+      
+            // Add the new comment
+            await github.rest.issues.createComment({
+              issue_number,
+              owner,
+              repo,
+              body: `## 🌐 WebContainer Terminal Preview
+                **[📱 Open WebContainer Terminal](${{ github.event.pull_request.number }}.pr.catshoulder.dev)**
+                
+                > This WebContainer runs in your browser using the [WebContainer API](https://webcontainers.io/).
+                > 
+                > **Features:**
+                > - ✅ Full terminal access
+                > - ✅ Browser-based execution
+                > - ✅ No server required
+                
+                ---
+                <sup>Preview generated for PR #${{ github.event.pull_request.number }}</sup>`
+            });
+      

@@ -25,9 +25,6 @@ jobs:
       - name: Create WebContainer HTML
         run: |
           mkdir -p pr-${{ github.event.pull_request.number }}
-          cat > CNAME << 'EOF'
-            {{ github.event.pull_request.number }}.pr.sayjeyhi.com
-          EOF
           cat > pr-${{ github.event.pull_request.number }}/index.html << 'EOF'
           <!DOCTYPE html>
           <html>
@@ -94,38 +91,38 @@ jobs:
 
               <script type="module">
                   import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.5.1/dist/index.js';
-                  
+          
                   const terminal = document.getElementById('terminal');
                   const status = document.getElementById('status');
-                  
+          
                   async function runWebContainer() {
                       try {
                           status.textContent = 'Status: Booting WebContainer...';
-                          
+          
                           const webcontainer = await WebContainer.boot();
-                          
+          
                           status.textContent = 'Status: WebContainer ready, running command...';
                           terminal.innerHTML = '<div class="command">$ echo "hello-world!"</div>';
-                          
+          
                           const process = await webcontainer.spawn('echo', ['hello-world!']);
                           const { code } = await process.exit;
-                          
+          
                           // Simple output capture
                           terminal.innerHTML += '<div class="output">hello-world!</div>';
-                          
+          
                           if (code === 0) {
                               status.innerHTML = '<span class="success">✅ Command executed successfully</span> | Exit Code: ' + code;
                           } else {
                               status.innerHTML = '<span class="error">❌ Command failed</span> | Exit Code: ' + code;
                           }
-                          
+          
                       } catch (error) {
                           terminal.innerHTML += '<div class="error">Error: ' + error.message + '</div>';
                           status.innerHTML = '<span class="error">❌ WebContainer failed to start</span>';
                           console.error('WebContainer error:', error);
                       }
                   }
-                  
+          
                   runWebContainer();
               </script>
           </body>
@@ -149,16 +146,16 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const issue_number = context.issue.number;
-      
+            
             // Find previous comments from the bot with our marker
             const { data: comments } = await github.rest.issues.listComments({
               owner,
               repo,
               issue_number,
             });
-      
+            
             const marker = "🌐 WebContainer Terminal Preview";
-      
+            
             for (const comment of comments) {
               if (
                 comment.user.login === "github-actions[bot]" &&
@@ -171,7 +168,7 @@ jobs:
                 });
               }
             }
-      
+            
             // Add the new comment
             await github.rest.issues.createComment({
               issue_number,
@@ -179,15 +176,14 @@ jobs:
               repo,
               body: `## 🌐 WebContainer Terminal Preview
                 **[📱 Open WebContainer Terminal](${{ steps.deployment.outputs.page_url }})**
-                
+            
                 > This WebContainer runs in your browser using the [WebContainer API](https://webcontainers.io/).
                 > 
                 > **Features:**
                 > - ✅ Full terminal access
                 > - ✅ Browser-based execution
                 > - ✅ No server required
-                
+            
                 ---
                 <sup>Preview generated for PR #${{ github.event.pull_request.number }}</sup>`
             });
-      

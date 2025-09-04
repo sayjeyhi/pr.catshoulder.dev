@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: preview-pr-service
+spec:
+  selector:
+    app: preview-pr
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
