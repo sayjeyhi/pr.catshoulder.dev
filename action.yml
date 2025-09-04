@@ -9,26 +9,22 @@ inputs:
     description: "Command to build the project"
     required: true
     default: "npm run build"
+  serve_command:
+    description: "Command to serve the project"
+    required: true
+    default: "npm run start"
   base_path:
     description: "Base path of the project"
     required: false
-    default: "."
+    default: "./"
   static_path:
     description: "Path to the built static files"
     required: true
-    default: "./frontend/dist"
+    default: "./dist"
   port:
     description: "Port to run the preview server"
     required: false
     default: "3000"
-  pr_comment:
-    description: "Whether to comment the preview URL on the PR"
-    required: false
-    default: "false"
-  pr_comment_message:
-    description: "Message to include in the PR comment"
-    required: false
-    default: "Your preview is ready! [Click here](%preview_url%) to view it."
 runs:
   using: "node20"
-  main: "main.js"
+  main: "./dist/main.js"
