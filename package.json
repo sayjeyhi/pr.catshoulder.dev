@@ -1,0 +1,29 @@
+{
+  "name": "linguci-github-action",
+  "version": "0.1.0",
+  "main": "main.js",
+  "type": "module",
+  "scripts": {
+    "build": "ncc build main.js -o dist --license license.txt"
+  },
+  "keywords": [
+    "github",
+    "action",
+    "webcontainer",
+    "terminal",
+    "pr-comment"
+  ],
+  "author": "tajpouria",
+  "license": "MIT",
+  "description": "GitHub Action for running commands in a WebContainer and posting results as PR comments",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.1"
+  }
+}

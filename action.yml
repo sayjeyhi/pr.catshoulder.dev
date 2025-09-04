@@ -1,0 +1,34 @@
+name: "UI Preview Web Container"
+description: "GitHub Action for enabling build and preview applications in a web container"
+inputs:
+  pkg_manager:
+    description: "Package manager to use"
+    required: true
+    default: "npm"
+  build_command:
+    description: "Command to build the project"
+    required: true
+    default: "npm run build"
+  base_path:
+    description: "Base path of the project"
+    required: false
+    default: "."
+  static_path:
+    description: "Path to the built static files"
+    required: true
+    default: "./frontend/dist"
+  port:
+    description: "Port to run the preview server"
+    required: false
+    default: "3000"
+  pr_comment:
+    description: "Whether to comment the preview URL on the PR"
+    required: false
+    default: "false"
+  pr_comment_message:
+    description: "Message to include in the PR comment"
+    required: false
+    default: "Your preview is ready! [Click here](%preview_url%) to view it."
+runs:
+  using: "node20"
+  main: "main.js"
