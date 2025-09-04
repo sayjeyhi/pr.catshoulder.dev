@@ -1,4 +1,4 @@
-name: Deploy WebContainer to GitHub Pages
+name: Deploy WebContainer to Kubernetes
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  deploy:
+  deploy-k8s:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -191,7 +191,7 @@ jobs:
               issue_number,
             });
       
-            const marker = "🌐 WebContainer Terminal Preview";
+            const marker = "🌐 WebContainer K8S Terminal Preview";
       
             for (const comment of comments) {
               if (

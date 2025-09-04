@@ -11,7 +11,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  deploy:
+  preview-github-pages:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -154,7 +154,7 @@ jobs:
               issue_number,
             });
             
-            const marker = "🌐 WebContainer Terminal Preview";
+            const marker = "🌐 WebContainer Github Pages Terminal Preview";
             
             for (const comment of comments) {
               if (

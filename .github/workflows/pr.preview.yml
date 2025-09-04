@@ -7,7 +7,7 @@ permissions:
   pull-requests: write
 
 jobs:
-  preview:
+  preview-webcontainer:
     runs-on: ubuntu-latest
     steps:
       - name: UI PR preview
