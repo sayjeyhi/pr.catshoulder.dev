@@ -1,7 +1,7 @@
 {
   "name": "ui.pr.new",
   "version": "0.1.0",
-  "main": "main.js",
+  "main": "./dist/main.js",
   "type": "module",
   "scripts": {
     "build": "ncc build main.js -o dist --license license.txt"
