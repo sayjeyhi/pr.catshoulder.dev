@@ -4,16 +4,15 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-  pull-requests: write
-  packages: write
-
 jobs:
   preview-github-pages:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+      pull-requests: write
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
