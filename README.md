@@ -22,20 +22,19 @@ Create a `pr.preview.yml` file in .github/workflows and use the following templa
     build_command: bun build
     serve_command: bun start
     base_path: ./test
-    static_path: ./test/dist
     port: 3000
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-| Option               | Description                                  | Required                                                                       | Example                                                           |
-|----------------------|----------------------------------------------|--------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| `pkg_manager`        | Package manager to use                       | Yes                                                                            | `npm`, `yarn`, `pnpm`, `bun`                                      |
-| `build_command`      | Command to build the project                 | Yes                                                                            | `npm run build`, `yarn build`, `pnpm build`, `bun build`          |
-| `serve_command`      | Command to serve the project                 | Yes                                                                            | `npm run start`, `yarn start`, `pnpm start`, `bun start`          |
-| `base_path`          | Base path of the project                     | No (default: `./`)                                                             | `./test`, `./frontend`, `./app`                                   |
-| `static_path`        | Path to the built static files               | Yes                                                                            | `./dist`, `./test/dist`, `./frontend/dist`, `./build`, `./public` |
-| `port`               | Port to run the preview server               | No (default: `3000`)                                                           | `3000`, `8080`                                                    |
+| Option          | Description                     | Required                                                 | Example                                                           |
+|-----------------|---------------------------------|----------------------------------------------------------|-------------------------------------------------------------------|
+| `pkg_manager`   | Package manager to use          | Yes                                                      | `npm`, `yarn`, `pnpm`, `bun`                                      |
+| `build_command` | Command to build the project    | Yes                                                      | `npm run build`, `yarn build`, `pnpm build`, `bun build`          |
+| `serve_command` | Command to serve the project    | Yes                                                      | `npm run start`, `yarn start`, `pnpm start`, `bun start`          |
+| `base_path`     | Base path of the project        | No (default: `./`)                                       | `./test`, `./frontend`, `./app`                                   |
+| `port`          | Port to run the preview server  | No (default: `3000`)                                     | `3000`, `8080`                                                    |
+| `comment_body`  | Comment body for the PR comment | No (default: `Preview the WebContainer Terminal below.`) | `3000`, `8080`                                                    |
 
 ### Set up required secrets
 

@@ -31694,14 +31694,12 @@ async function run() {
   const buildCommand = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("build_command") || "npm run build";
   const serveCommand = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("serve_command") || "npm run start";
   const port = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("port") || "3000";
-  
-  try {
-    // Read inputs from GitHub Actions
-    const prCommentMessage = prBody || "WebContainer Terminal Output:";
+  const commentBodyInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("comment_body") || "Preview the WebContainer Terminal below.";
 
+  try {
     // Get the GitHub context
     const context = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context;
-    
+
     if (context.eventName !== 'pull_request') {
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("This action only works on pull request events.");
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("status", "skipped");
@@ -31836,7 +31834,7 @@ async function run() {
 
     // Create the comment content with embedded HTML
     const commentBody = `
-${prCommentMessage}
+${commentBodyInput}
 
 <details>
 <summary>🌐 Click to open WebContainer Terminal</summary>

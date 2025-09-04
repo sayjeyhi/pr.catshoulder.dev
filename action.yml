@@ -17,14 +17,14 @@ inputs:
     description: "Base path of the project"
     required: false
     default: "./"
-  static_path:
-    description: "Path to the built static files"
-    required: true
-    default: "./dist"
   port:
     description: "Port to run the preview server"
     required: false
     default: "3000"
+  comment_body:
+    description: "Comment body for the PR comment"
+    required: false
+    default: "Preview the WebContainer Terminal below."
 runs:
   using: "node20"
   main: "./dist/index.js"

@@ -8,14 +8,12 @@ async function run() {
   const buildCommand = core.getInput("build_command") || "npm run build";
   const serveCommand = core.getInput("serve_command") || "npm run start";
   const port = core.getInput("port") || "3000";
-  
-  try {
-    // Read inputs from GitHub Actions
-    const prCommentMessage = prBody || "WebContainer Terminal Output:";
+  const commentBodyInput = core.getInput("comment_body") || "Preview the WebContainer Terminal below.";
 
+  try {
     // Get the GitHub context
     const context = github.context;
-    
+
     if (context.eventName !== 'pull_request') {
       core.info("This action only works on pull request events.");
       core.setOutput("status", "skipped");
@@ -150,7 +148,7 @@ async function run() {
 
     // Create the comment content with embedded HTML
     const commentBody = `
-${prCommentMessage}
+${commentBodyInput}
 
 <details>
 <summary>🌐 Click to open WebContainer Terminal</summary>
