@@ -36,6 +36,9 @@ jobs:
 
       - name: Pass REPO config to WebContainer app
         run: |
+          ls -la
+          ls -la ./app
+          ls -la ./app/dist
           sed -i 's|{{REPO_NAME}}|'"${{ env.REPOSITORY_NAME }}"'|g' ./app/dist/html.html
           sed -i 's|{{REPO_COMMIT}}|'"${{ env.COMMIT_SHA_SHORT }}"'|g' ./app/dist/html.html
           sed -i 's|{{REPO_URL}}|'"https://github.com/${{ env.REPOSITORY_NAME }}.git"'|g' ./app/dist/html.html
