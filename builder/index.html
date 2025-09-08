@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>WebContainer Dual Terminal - PR #${{ github.event.pull_request.number }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background: #0d1117;
+            color: #f0f6fc;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            height: calc(100vh - 32px);
+            grid-template-rows: auto 1fr auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #238636, #2ea043);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 16px rgba(35, 134, 54, 0.3);
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .header-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .status-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .terminals-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            height: 100%;
+        }
+        .terminal-panel {
+            background: #161b22;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .terminal-header {
+            background: #21262d;
+            padding: 12px 16px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .terminal-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .terminal {
+            background: #0d1117;
+            color: #f0f6fc;
+            padding: 16px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-y: auto;
+            flex: 1;
+            white-space: pre-wrap;
+        }
+        .loading { color: #58a6ff; }
+        .error { color: #f85149; font-weight: 500; }
+        .success { color: #3fb950; font-weight: 500; }
+        .warning { color: #d29922; font-weight: 500; }
+        .info { color: #58a6ff; }
+        .command {
+            color: #58a6ff;
+            font-weight: 600;
+            margin: 12px 0 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .output {
+            color: #f0f6fc;
+            margin: 6px 0 12px 20px;
+            background: rgba(56, 139, 253, 0.05);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #58a6ff;
+        }
+        .controls {
+            background: #21262d;
+            padding: 16px;
+            border-top: 1px solid #30363d;
+            border-radius: 0 0 12px 12px;
+        }
+        .input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .command-input {
+            flex: 1;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #f0f6fc;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+        }
+        .command-input:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+        }
+        .btn {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .btn:hover:not(:disabled) { background: #2ea043; }
+        .btn:disabled {
+            background: #484f58;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 11px;
+        }
+        .btn-secondary {
+            background: #21262d;
+            border: 1px solid #30363d;
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background: #30363d;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 6px;
+        }
+        .status-bar {
+            background: #21262d;
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+            border: 1px solid #30363d;
+        }
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .file-tree {
+            background: #0d1117;
+            color: #7d8590;
+            font-size: 11px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 8px;
+            margin: 8px 0;
+            border-radius: 4px;
+            border: 1px solid #30363d;
+        }
+        @media (max-width: 1200px) {
+            .terminals-container {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="header-left">
+            <span style="font-size: 24px;">🌐</span>
+            <div>
+                <div class="header-title">WebContainer Dual Terminal</div>
+                <div class="header-subtitle">PR #${{ github.event.pull_request.number }} • Repository: ${{ github.repository }}</div>
+            </div>
+        </div>
+        <div class="status-badge" id="headerStatus">Initializing</div>
+    </div>
+
+    <div class="terminals-container">
+        <!-- Left Terminal -->
+        <div class="terminal-panel">
+            <div class="terminal-header">
+                <div class="terminal-title">
+                    <span>💻</span>
+                    <span>Main Terminal</span>
+                </div>
+                <div style="font-size: 12px; color: #7d8590;">WebContainer 1</div>
+            </div>
+            <div class="terminal" id="terminal1">
+                <div class="loading">🚀 Initializing WebContainer...</div>
+            </div>
+            <div class="controls">
+                <div class="input-group">
+                    <input
+                            type="text"
+                            class="command-input"
+                            id="commandInput1"
+                            placeholder="Enter command..."
+                            value="ls -la"
+                    >
+                    <button class="btn" id="runBtn1" onclick="runCommand(1)" disabled>▶️</button>
+                </div>
+                <div class="button-grid">
+                    <button class="btn btn-secondary btn-small" onclick="clearTerminal(1)">Clear</button>
+                    <button class="btn btn-secondary btn-small" onclick="showFiles(1)">Files</button>
+                    <button class="btn btn-secondary btn-small" onclick="runDemo(1)">Demo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Terminal -->
+        <div class="terminal-panel">
+            <div class="terminal-header">
+                <div class="terminal-title">
+                    <span>⚡</span>
+                    <span>Secondary Terminal</span>
+                </div>
+                <div style="font-size: 12px; color: #7d8590;">WebContainer 2</div>
+            </div>
+            <div class="terminal" id="terminal2">
+                <div class="loading">🚀 Initializing WebContainer...</div>
+            </div>
+            <div class="controls">
+                <div class="input-group">
+                    <input
+                            type="text"
+                            class="command-input"
+                            id="commandInput2"
+                            placeholder="Enter command..."
+                            value="echo 'Hello from Terminal 2!'"
+                    >
+                    <button class="btn" id="runBtn2" onclick="runCommand(2)" disabled>▶️</button>
+                </div>
+                <div class="button-grid">
+                    <button class="btn btn-secondary btn-small" onclick="clearTerminal(2)">Clear</button>
+                    <button class="btn btn-secondary btn-small" onclick="showFiles(2)">Files</button>
+                    <button class="btn btn-secondary btn-small" onclick="runDemo(2)">Demo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-left">
+            <span id="statusIcon">⚡</span>
+            <span id="statusText">Booting WebContainers...</span>
+        </div>
+        <div style="color: #7d8590; font-size: 12px;">
+            Project files loaded • Dual WebContainer environment
+        </div>
+    </div>
+</div>
+
+<script type="module">
+  import { WebContainer } from 'https://unpkg.com/@webcontainer/api@1.5.1/dist/index.js';
+
+  // Import project files
+  let projectFiles = {};
+  try {
+    const response = await fetch('./projectFiles.json');
+    projectFiles = await response.json();
+    console.log('Project files loaded:', Object.keys(projectFiles));
+  } catch (error) {
+    console.error('Failed to load project files:', error);
+  }
+
+  const terminals = {
+    1: document.getElementById('terminal1'),
+    2: document.getElementById('terminal2')
+  };
+  const commandInputs = {
+    1: document.getElementById('commandInput1'),
+    2: document.getElementById('commandInput2')
+  };
+  const runBtns = {
+    1: document.getElementById('runBtn1'),
+    2: document.getElementById('runBtn2')
+  };
+
+  const statusIcon = document.getElementById('statusIcon');
+  const statusText = document.getElementById('statusText');
+  const headerStatus = document.getElementById('headerStatus');
+
+  let webcontainers = {};
+
+  // Make functions globally available
+  window.runCommand = runCommand;
+  window.clearTerminal = clearTerminal;
+  window.runDemo = runDemo;
+  window.showFiles = showFiles;
+
+  async function initWebContainers() {
+    try {
+      updateStatus('🚀', 'Booting WebContainers...', 'Initializing');
+
+      // Check requirements
+      if (typeof SharedArrayBuffer === 'undefined') {
+        throw new Error('SharedArrayBuffer not available');
+      }
+      if (!crossOriginIsolated) {
+        throw new Error('Cross-origin isolation required');
+      }
+
+      // Boot both WebContainers
+      console.log('Booting WebContainer 1...');
+      webcontainers[1] = await WebContainer.boot();
+      terminals[1].innerHTML = '<div class="success">✅ WebContainer 1 ready!</div>';
+
+      console.log('Booting WebContainer 2...');
+      webcontainers[2] = await WebContainer.boot();
+      terminals[2].innerHTML = '<div class="success">✅ WebContainer 2 ready!</div>';
+
+      // Load project files into both containers
+      if (Object.keys(projectFiles).length > 0) {
+        console.log('Loading project files into WebContainers...');
+        await webcontainers[1].mount(projectFiles);
+        await webcontainers[2].mount(projectFiles);
+
+        terminals[1].innerHTML += '<div class="info">📁 Project files loaded</div>';
+        terminals[2].innerHTML += '<div class="info">📁 Project files loaded</div>';
+      }
+
+      updateStatus('✅', 'Both WebContainers ready!', 'Ready');
+      runBtns[1].disabled = false;
+      runBtns[2].disabled = false;
+
+    } catch (error) {
+      console.error('WebContainer initialization error:', error);
+      updateStatus('❌', 'Initialization failed', 'Error');
+      terminals[1].innerHTML = `<div class="error">❌ Failed to initialize: ${error.message}</div>`;
+      terminals[2].innerHTML = `<div class="error">❌ Failed to initialize: ${error.message}</div>`;
+    }
+  }
+
+  async function runCommand(terminalId) {
+    const webcontainer = webcontainers[terminalId];
+    const terminal = terminals[terminalId];
+    const commandInput = commandInputs[terminalId];
+
+    if (!webcontainer) {
+      alert('WebContainer not ready yet!');
+      return;
+    }
+
+    const command = commandInput.value.trim();
+    if (!command) return;
+
+    const [executable, ...args] = command.split(' ');
+
+    try {
+      updateStatus('⚡', `Running in Terminal ${terminalId}: ${command}`, 'Running');
+
+      terminal.innerHTML += `
+                              <div class="command">
+                                  <span>Terminal ${terminalId} $</span>
+                                  <span>${command}</span>
+                              </div>
+                          `;
+
+      const process = await webcontainer.spawn(executable, args);
+      let output = '';
+
+      const reader = process.output.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        output += new TextDecoder().decode(value);
+      }
+
+      const exitCode = await process.exit;
+
+      if (output.trim()) {
+        terminal.innerHTML += `<div class="output">${output}</div>`;
+      } else {
+        terminal.innerHTML += `<div class="output" style="color: #7d8590; font-style: italic;">No output</div>`;
+      }
+
+      updateStatus('✅', `Command completed in Terminal ${terminalId}`, 'Ready');
+      terminal.scrollTop = terminal.scrollHeight;
+      commandInput.value = '';
+
+    } catch (error) {
+      terminal.innerHTML += `<div class="error">❌ Error: ${error.message}</div>`;
+      updateStatus('❌', 'Command failed', 'Error');
+    }
+  }
+
+  function clearTerminal(terminalId) {
+    terminals[terminalId].innerHTML = `<div class="success">✅ Terminal ${terminalId} cleared</div>`;
+  }
+
+  async function showFiles(terminalId) {
+    const terminal = terminals[terminalId];
+
+    if (Object.keys(projectFiles).length === 0) {
+      terminal.innerHTML += `<div class="warning">⚠️ No project files available</div>`;
+      return;
+    }
+
+    terminal.innerHTML += `<div class="command">$ tree (simulated)</div>`;
+
+    function renderTree(obj, prefix = '') {
+      let result = '';
+      const entries = Object.entries(obj);
+
+      entries.forEach(([name, content], index) => {
+        const isLast = index === entries.length - 1;
+        const currentPrefix = isLast ? '└── ' : '├── ';
+        const nextPrefix = isLast ? '    ' : '│   ';
+
+        if (content.directory) {
+          result += `${prefix}${currentPrefix}📁 ${name}/\n`;
+          result += renderTree(content.directory, prefix + nextPrefix);
+        } else if (content.file) {
+          result += `${prefix}${currentPrefix}📄 ${name}\n`;
+        }
+      });
+
+      return result;
+    }
+
+    let treeOutput = '';
+    for (const [projectName, projectContent] of Object.entries(projectFiles)) {
+      treeOutput += `📁 ${projectName}/\n`;
+      if (projectContent.directory) {
+        treeOutput += renderTree(projectContent.directory);
+      }
+    }
+
+    terminal.innerHTML += `<div class="output"><div class="file-tree">${treeOutput}</div></div>`;
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+
+  async function runDemo(terminalId) {
+    const demos = [
+      { cmd: 'pwd', desc: 'Show current directory' },
+      { cmd: 'ls -la', desc: 'List files and directories' },
+      { cmd: 'whoami', desc: 'Show current user' },
+      { cmd: 'echo "Hello from WebContainer!"', desc: 'Echo command' },
+      { cmd: 'date', desc: 'Show current date' }
+    ];
+
+    clearTerminal(terminalId);
+    terminals[terminalId].innerHTML += `<div class="warning">🎭 Running demo in Terminal ${terminalId}...</div>`;
+
+    for (const demo of demos) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      commandInputs[terminalId].value = demo.cmd;
+      await runCommand(terminalId);
+    }
+
+    terminals[terminalId].innerHTML += `<div class="success">🎉 Demo completed!</div>`;
+  }
+
+  function updateStatus(icon, text, badge) {
+    statusIcon.textContent = icon;
+    statusText.textContent = text;
+    headerStatus.textContent = badge;
+  }
+
+  // Event listeners
+  commandInputs[1].addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !runBtns[1].disabled) runCommand(1);
+  });
+
+  commandInputs[2].addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !runBtns[2].disabled) runCommand(2);
+  });
+
+  // Initialize
+  initWebContainers();
+</script>
+</body>
+</html>
