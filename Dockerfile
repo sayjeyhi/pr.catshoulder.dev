@@ -5,7 +5,7 @@ FROM nginx:alpine
 WORKDIR /usr/share/nginx/html
 
 # Copy built React files
-COPY deploy /usr/share/nginx/html
+COPY app/dist /usr/share/nginx/html
 
 # Copy Nginx configuration
-COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY app/dist/nginx.conf /etc/nginx/conf.d/default.conf

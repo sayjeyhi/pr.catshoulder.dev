@@ -28,22 +28,20 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
-
       - name: Set commit SHA short
         run: |
           echo "COMMIT_SHA_SHORT=${GITHUB_SHA::8}" >> $GITHUB_ENV
           echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
           echo "REPOSITORY_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
 
-      - name: Generate Project Files JSON
+      - name: Pass REPO config to WebContainer app
         run: |
-          # Run the script
-          node generate-project-files.js
-
-      - name: Create WebContainer HTML with Dual Terminals
-        run: |
-          cat > deploy/config.html << 'EOF'
-          
+          sed -i 's|{{REPO_NAME}}|'"${{ env.REPOSITORY_NAME }}"'|g' ./app/dist/html.html
+          sed -i 's|{{REPO_COMMIT}}|'"${{ env.COMMIT_SHA_SHORT }}"'|g' ./app/dist/html.html
+          sed -i 's|{{REPO_URL}}|'"https://github.com/${{ env.REPOSITORY_NAME }}.git"'|g' ./app/dist/html.html
+          sed -i 's|{{DATE}}|'"${{ env.CURRENT_DATE }}"'|g' ./app/dist/html.html
+          sed -i 's|{{PR_NUMBER}}|'"${{ github.event.pull_request.number }}"'|g' ./app/dist/html.html
+          cat ./app/dist/html.html
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
