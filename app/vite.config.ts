@@ -5,6 +5,7 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { optimizeCssModules } from 'vite-plugin-optimize-css-modules';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import * as dotenv from 'dotenv';
+import path from 'path';
 
 // Load environment variables from multiple files
 dotenv.config({ path: '.env.local' });
@@ -21,7 +22,7 @@ export default defineConfig((config) => {
     },
     resolve: {
       alias: {
-        '~': '/src/bolt/app',
+        '~': path.resolve(__dirname, 'src'),
       },
     },
     server: {

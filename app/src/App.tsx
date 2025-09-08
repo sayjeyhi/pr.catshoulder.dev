@@ -1,6 +1,5 @@
-import './App.css'
-import BackgroundRays from "./bolt/app/components/ui/BackgroundRays";
-import {Workbench} from "./bolt/app/components/workbench/Workbench.client.tsx";
+import BackgroundRays from "./components/ui/BackgroundRays";
+import {Workbench} from "./components/workbench/Workbench.client.tsx";
 
 function App() {
   return (
