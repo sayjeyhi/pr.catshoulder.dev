@@ -36,15 +36,12 @@ jobs:
 
       - name: Pass REPO config to WebContainer app
         run: |
-          ls -la
-          ls -la ./app
-          ls -la ./app/dist
-          sed -i 's|{{REPO_NAME}}|'"${{ env.REPOSITORY_NAME }}"'|g' ./app/dist/html.html
-          sed -i 's|{{REPO_COMMIT}}|'"${{ env.COMMIT_SHA_SHORT }}"'|g' ./app/dist/html.html
-          sed -i 's|{{REPO_URL}}|'"https://github.com/${{ env.REPOSITORY_NAME }}.git"'|g' ./app/dist/html.html
-          sed -i 's|{{DATE}}|'"${{ env.CURRENT_DATE }}"'|g' ./app/dist/html.html
-          sed -i 's|{{PR_NUMBER}}|'"${{ github.event.pull_request.number }}"'|g' ./app/dist/html.html
-          cat ./app/dist/html.html
+          sed -i 's|{{REPO_NAME}}|'"${{ env.REPOSITORY_NAME }}"'|g' ./app/dist/index.html
+          sed -i 's|{{REPO_COMMIT}}|'"${{ env.COMMIT_SHA_SHORT }}"'|g' ./app/dist/index.html
+          sed -i 's|{{REPO_URL}}|'"https://github.com/${{ env.REPOSITORY_NAME }}.git"'|g' ./app/dist/index.html
+          sed -i 's|{{DATE}}|'"${{ env.CURRENT_DATE }}"'|g' ./app/dist/index.html
+          sed -i 's|{{PR_NUMBER}}|'"${{ github.event.pull_request.number }}"'|g' ./app/dist/index.html
+          cat ./app/dist/index.html
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
