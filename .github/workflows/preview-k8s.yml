@@ -113,23 +113,11 @@ jobs:
               issue_number,
               owner,
               repo,
-              body: `## 🌐 WebContainer Dual Terminal Preview
+              body: `\n
+                ## 🌐 WebContainer Dual Terminal Preview
                 **[📱 Open Dual Terminal Interface](https://${{ github.event.pull_request.number }}.pr.catshoulder.dev)**
             
-                > This WebContainer runs in your browser with two terminals:
-                > 
-                > **🤖 Auto Setup Terminal:**
-                > - ✅ Auto clones your PR branch
-                > - ✅ Runs \`bun install\`
-                > - ✅ Runs \`bun run build\`
-                > - ✅ Runs \`bun run start\`
-                > - ✅ Opens app in new tab when ready
-                > 
-                > **💻 Interactive Terminal:**
-                > - ✅ Full command line access
-                > - ✅ Real-time command execution
-                > - ✅ Works in parallel with auto setup
-            
+                This WebContainer runs in your browser.
                 ---
                 <sup>Dual terminal preview generated for PR #${{ github.event.pull_request.number }}</sup>`
             });
