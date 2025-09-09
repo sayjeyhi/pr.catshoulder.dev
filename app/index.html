@@ -10,12 +10,15 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-        const repoConfig = {
+        window.repoConfig = {
           name: '{{REPO_NAME}}',
           commit: '{{REPO_COMMIT}}',
           url: '{{REPO_URL}}',
           date: '{{DATE}}',
-          prNumber: '{{PR_NUMBER}}'
+          prNumber: '{{PR_NUMBER}}',
+          prTitle: '{{PR_TITLE}}',
+          prAuthor: '{{PR_AUTHOR}}',
+          branch: '{{BRANCH}}',
         };
         if (repoConfig.url !== '{{REPO_URL}}') {
           document.title = `ui.pr.new - ${repoConfig.name}`;

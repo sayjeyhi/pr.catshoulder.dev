@@ -82,6 +82,7 @@ export function useGit() {
           depth: 1,
           singleBranch: true,
           corsProxy: 'https://git-proxy.iwaskidding.com/',
+          ref: window.repoConfig.branch,
           headers,
           onProgress: (event) => {
             console.log('Git clone progress:', event);

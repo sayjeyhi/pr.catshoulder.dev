@@ -5,18 +5,21 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ui.pr.new</title>
-    <script type="module" crossorigin src="/assets/index-CauJe-ch.js"></script>
+    <script type="module" crossorigin src="/assets/index-SRt35b5K.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-SnV_bFfr.css">
   </head>
   <body>
     <div id="root"></div>
     <script>
-        const repoConfig = {
+        window.repoConfig = {
           name: '{{REPO_NAME}}',
           commit: '{{REPO_COMMIT}}',
           url: '{{REPO_URL}}',
           date: '{{DATE}}',
-          prNumber: '{{PR_NUMBER}}'
+          prNumber: '{{PR_NUMBER}}',
+          prTitle: '{{PR_TITLE}}',
+          prAuthor: '{{PR_AUTHOR}}',
+          branch: '{{BRANCH}}',
         };
         if (repoConfig.url !== '{{REPO_URL}}') {
           document.title = `ui.pr.new - ${repoConfig.name}`;

@@ -57,8 +57,7 @@ export const Workbench = memo(({ metadata: _metadata, updateChatMestaData: _upda
 
   useEffect(() => {
     if (gitReady) {
-      // TODO: repo URL
-      importRepo('https://github.com/sayjeyhi/my-3d-portfolio.git');
+      importRepo(window.repoConfig.url)
     }
   }, [gitReady]);
 
