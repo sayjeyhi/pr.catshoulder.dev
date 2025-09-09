@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: preview-pr
-          image: ghcr.io/sayjeyhi/ui.pr.new:latest
+          image: ghcr.io/sayjeyhi/pr.catshoulder.dev:latest
           ports:
             - containerPort: 8080
           livenessProbe:

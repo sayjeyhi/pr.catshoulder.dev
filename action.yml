@@ -8,10 +8,27 @@ inputs:
     description: "Package manager to use"
     required: true
     default: "npm"
+  root_dir:
+    description: "Root directory of the project"
+    required: false
+    default: "."
   serve_command:
     description: "Command to serve the project"
     required: true
     default: "npm run start"
+  domain:
+    description: "Domain for the preview (e.g., example.dev)"
+    required: false
+    default: "pr.catshoulder.dev"
+  github_user:
+    description: "Github user for actions "
+    required: true
+  github_pat:
+    description: "GitHub personal access token with write access to the repository"
+    required: true
+  kube_config:
+    description: "Kubernetes config for deploying the preview"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -22,14 +39,14 @@ runs:
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
-        username: sayjeyhi
-        password: ${{ secrets.GHCR_PAT }}
+        username: ${{ inputs.github_user }}
+        password: ${{ inputs.github_pat }}
 
     - name: Kubernetes set context
       uses: Azure/k8s-set-context@v3
       with:
         method: kubeconfig
-        kubeconfig: ${{ secrets.KUBE_CONFIG }}
+        kubeconfig: ${{ inputs.kube_config }}
 
     - name: Set commit SHA short
       run: |
@@ -47,7 +64,11 @@ runs:
         sed -i 's|{{PR_TITLE}}|'"${{ github.event.pull_request.title }}"'|g' ./app/dist/index.html
         sed -i 's|{{PR_AUTHOR}}|'"${{ github.event.pull_request.user.login }}"'|g' ./app/dist/index.html
         sed -i 's|{{BRANCH}}|'"${{ github.event.pull_request.head.ref }}"'|g' ./app/dist/index.html
+        sed -i 's|{{PKG_MANAGER}}|'"${{ inputs.pkg_manager }}"'|g' ./app/dist/index.html
+        sed -i 's|{{ROOT_DIR}}|'"${{ inputs.root_dir }}"'|g' ./app/dist/index.html
+        sed -i 's|{{SERVE_COMMAND}}|'"${{ inputs.serve_command }}"'|g' ./app/dist/index.html
         sed -i 's|{{PR_NUMBER}}|'"${{ github.event.pull_request.number }}"'|g' ./app/dist/nginx.conf
+        sed -i 's|{{DOMAIN}}|'"${{ inputs.domain }}"'|g' ./app/dist/nginx.conf
         cat ./app/dist/index.html
         cat ./app/dist/nginx.conf
 
@@ -116,14 +137,6 @@ runs:
             issue_number,
             owner,
             repo,
-            body: `\n
-              ## 🌐 WebContainer Dual Terminal Preview
-
-              **[📱 Open Dual Terminal Interface](https://${{ github.event.pull_request.number }}.pr.catshoulder.dev)**
-
-              This WebContainer runs in your browser.
-          
-              ---
-              <sup>Dual terminal preview generated for PR #${{ github.event.pull_request.number }}</sup>`
+            body: `## 🌐 WebContainer Preview is Ready!\n**[📱 Open Terminal Interface](https://${{ github.event.pull_request.number }}.pr.catshoulder.dev)**`
           });
 

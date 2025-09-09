@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ui.pr.new</title>
+    <title>pr.catshoulder.dev</title>
   </head>
   <body>
     <div id="root"></div>
@@ -19,9 +19,12 @@
           prTitle: '{{PR_TITLE}}',
           prAuthor: '{{PR_AUTHOR}}',
           branch: '{{BRANCH}}',
+          packageManager: '{{PKG_MANAGER}}',
+          rootDir: '{{ROOT_DIR}}',
+          serveCommand: '{{SERVE_COMMAND}}',
         };
         if (repoConfig.url !== '{{REPO_URL}}') {
-          document.title = `ui.pr.new - ${repoConfig.name}`;
+          document.title = `pr.catshoulder.dev - ${repoConfig.name}`;
         } else {
           console.error('REPO_URL is not defined');
         }
