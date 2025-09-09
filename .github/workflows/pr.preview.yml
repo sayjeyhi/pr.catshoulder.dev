@@ -13,11 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: UI PR preview
-        uses: sayjeyhi/pr.catshoulder.dev@v0.1.8
+        uses: sayjeyhi/pr.catshoulder.dev@v0.1.9
         with:
           pkg_manager: pnpm
           root_dir: ./example
-          serve_command: pnpm start
+          serve_command: pnpm run dev
           domain: pr.catshoulder.dev
           github_user: sayjeyhi
           github_pat: ${{ secrets.GHCR_PAT }}
