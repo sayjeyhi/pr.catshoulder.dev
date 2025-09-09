@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: UI PR preview
-        uses: sayjeyhi/pr.catshoulder.dev@v0.1.7
+        uses: sayjeyhi/pr.catshoulder.dev@v0.1.8
         with:
           pkg_manager: pnpm
           root_dir: ./example
