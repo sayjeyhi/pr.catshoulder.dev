@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pr.catshoulder.dev</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+        window.repoConfig2 = {
+          name: '{{REPO_NAME}}',
+          commit: '{{REPO_COMMIT}}',
+          url: '{{REPO_URL}}',
+          date: '{{DATE}}',
+          prNumber: '{{PR_NUMBER}}',
+          prTitle: '{{PR_TITLE}}',
+          prAuthor: '{{PR_AUTHOR}}',
+          branch: '{{BRANCH}}',
+          packageManager: '{{PKG_MANAGER}}',
+          rootDir: '{{ROOT_DIR}}',
+          serveCommand: '{{SERVE_COMMAND}}',
+        };
+        document.title = `${repoConfig.prTitle} | ${repoConfig.name} | pr.catshoulder.dev`;
+    </script>
+  </body>
+</html>

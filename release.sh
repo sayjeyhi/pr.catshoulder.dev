@@ -1,6 +1,5 @@
 #! /bin/bash
 tag=$(cat package.json | jq -r '.version')
-npm run build
 git add .
 git commit -m "Update action"
 git tag -a -m "Release $tag" "v$tag"

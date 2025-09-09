@@ -1,30 +1,144 @@
 name: "UI Preview Web Container"
 description: "GitHub Action for enabling build and preview applications in a web container"
+branding:
+  icon: package
+  color: blue
 inputs:
   pkg_manager:
     description: "Package manager to use"
     required: true
     default: "npm"
-  build_command:
-    description: "Command to build the project"
-    required: true
-    default: "npm run build"
+  root_dir:
+    description: "Root directory of the project"
+    required: false
+    default: "."
   serve_command:
     description: "Command to serve the project"
     required: true
     default: "npm run start"
-  base_path:
-    description: "Base path of the project"
+  domain:
+    description: "Domain for the preview (e.g., example.dev)"
     required: false
-    default: "./"
-  port:
-    description: "Port to run the preview server"
-    required: false
-    default: "3000"
-  comment_body:
-    description: "Comment body for the PR comment"
-    required: false
-    default: "Preview the WebContainer Terminal below."
+    default: "pr.catshoulder.dev"
+  github_user:
+    description: "Github user for actions "
+    required: true
+  github_pat:
+    description: "GitHub personal access token with write access to the repository"
+    required: true
+  kube_config:
+    description: "Kubernetes config for deploying the preview"
+    required: true
 runs:
-  using: "node20"
-  main: "./dist/index.js"
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Log in to GHCR (PAT)
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ inputs.github_user }}
+        password: ${{ inputs.github_pat }}
+
+    - name: Kubernetes set context
+      uses: Azure/k8s-set-context@v3
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ inputs.kube_config }}
+
+    - name: Set commit SHA short
+      shell: bash
+      run: |
+        echo "COMMIT_SHA_SHORT=${GITHUB_SHA::8}" >> $GITHUB_ENV
+        echo "CURRENT_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+        echo "REPOSITORY_NAME=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+
+    - name: Pass REPO config to WebContainer app
+      shell: bash
+      run: |
+        sed -i 's|{{REPO_NAME}}|'"${{ env.REPOSITORY_NAME }}"'|g' ./app/dist/index.html
+        sed -i 's|{{REPO_COMMIT}}|'"${{ env.COMMIT_SHA_SHORT }}"'|g' ./app/dist/index.html
+        sed -i 's|{{REPO_URL}}|'"https://github.com/${{ env.REPOSITORY_NAME }}.git"'|g' ./app/dist/index.html
+        sed -i 's|{{DATE}}|'"${{ env.CURRENT_DATE }}"'|g' ./app/dist/index.html
+        sed -i 's|{{PR_NUMBER}}|'"${{ github.event.pull_request.number }}"'|g' ./app/dist/index.html
+        sed -i 's|{{PR_TITLE}}|'"${{ github.event.pull_request.title }}"'|g' ./app/dist/index.html
+        sed -i 's|{{PR_AUTHOR}}|'"${{ github.event.pull_request.user.login }}"'|g' ./app/dist/index.html
+        sed -i 's|{{BRANCH}}|'"${{ github.event.pull_request.head.ref }}"'|g' ./app/dist/index.html
+        sed -i 's|{{PKG_MANAGER}}|'"${{ inputs.pkg_manager }}"'|g' ./app/dist/index.html
+        sed -i 's|{{ROOT_DIR}}|'"${{ inputs.root_dir }}"'|g' ./app/dist/index.html
+        sed -i 's|{{SERVE_COMMAND}}|'"${{ inputs.serve_command }}"'|g' ./app/dist/index.html
+        sed -i 's|{{PR_NUMBER}}|'"${{ github.event.pull_request.number }}"'|g' ./app/dist/nginx.conf
+        sed -i 's|{{DOMAIN}}|'"${{ inputs.domain }}"'|g' ./app/dist/nginx.conf
+        cat ./app/dist/index.html
+        cat ./app/dist/nginx.conf
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Verify GHCR login
+      shell: bash
+      run: docker info
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        push: true
+        platforms: linux/amd64,linux/arm64
+        tags: |
+          ghcr.io/${{ env.REPOSITORY_NAME }}:${{ env.COMMIT_SHA_SHORT }}
+          ghcr.io/${{ env.REPOSITORY_NAME }}:${{ env.CURRENT_DATE }}
+          ghcr.io/${{ env.REPOSITORY_NAME }}:latest
+
+    - name: Deploy
+      uses: Azure/k8s-deploy@v5.0.1
+      with:
+        action: deploy
+        strategy: basic
+        imagepullsecrets: |
+          dockerconfigjson-github-com
+        manifests: |
+          ./k8s/deployment.yaml
+          ./k8s/service.yaml
+          ./k8s/ingress.yaml
+          ./k8s/middleware.yaml
+        images: ghcr.io/${{ env.REPOSITORY_NAME }}:${{ env.COMMIT_SHA_SHORT }}
+
+    - name: Comment PR
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const issue_number = context.issue.number;
+
+          // Find previous comments from the bot with our marker
+          const { data: comments } = await github.rest.issues.listComments({
+            owner,
+            repo,
+            issue_number,
+          });
+
+          const marker = "🌐 WebContainer Dual Terminal Preview";
+
+          for (const comment of comments) {
+            if (
+              comment.user.login === "github-actions[bot]" &&
+              comment.body.includes(marker)
+            ) {
+              await github.rest.issues.deleteComment({
+                owner,
+                repo,
+                comment_id: comment.id,
+              });
+            }
+          }
+
+          // Add the new comment
+          await github.rest.issues.createComment({
+            issue_number,
+            owner,
+            repo,
+            body: `## 🌐 WebContainer Preview is Ready!\n**[📱 Open Terminal Interface](https://${{ github.event.pull_request.number }}.pr.catshoulder.dev)**`
+          });

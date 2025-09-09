@@ -15,32 +15,39 @@ Automatically build and preview your UI in a GitHub Action using WebContainers a
 Create a `pr.preview.yml` file in .github/workflows and use the following template:
 
 ```yaml
-- name: UI PR preview
-  uses: sayjeyhi/ui.pr.new@v0.1.0
-  with:
-    pkg_manager: bun
-    build_command: bun build
-    serve_command: bun start
-    base_path: ./test
-    port: 3000
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+name: Deploy WebContainer Using pr.catshoulder.dev
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+jobs:
+  preview-webcontainer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: UI PR preview
+        uses: sayjeyhi/pr.catshoulder.dev@v0.1.0
+        with:
+          pkg_manager: pnpm
+          root_dir: ./example
+          serve_command: pnpm start
+          domain: pr.catshoulder.dev
+          github_user: sayjeyhi
+          github_pat: ${{ secrets.GHCR_PAT }}
+          kube_config: ${{ secrets.KUBE_CONFIG }}
 ```
 
-| Option          | Description                     | Required                                                 | Example                                                           |
-|-----------------|---------------------------------|----------------------------------------------------------|-------------------------------------------------------------------|
-| `pkg_manager`   | Package manager to use          | Yes                                                      | `npm`, `yarn`, `pnpm`, `bun`                                      |
-| `build_command` | Command to build the project    | Yes                                                      | `npm run build`, `yarn build`, `pnpm build`, `bun build`          |
-| `serve_command` | Command to serve the project    | Yes                                                      | `npm run start`, `yarn start`, `pnpm start`, `bun start`          |
-| `base_path`     | Base path of the project        | No (default: `./`)                                       | `./test`, `./frontend`, `./app`                                   |
-| `port`          | Port to run the preview server  | No (default: `3000`)                                     | `3000`, `8080`                                                    |
-| `comment_body`  | Comment body for the PR comment | No (default: `Preview the WebContainer Terminal below.`) | `3000`, `8080`                                                    |
+### Inputs Options:
 
-### Set up required secrets
+| Option          | Description                                                      | Required                           | Example                                                  |
+|-----------------|------------------------------------------------------------------|------------------------------------|----------------------------------------------------------|
+| `pkg_manager`   | Package manager to use                                           | Yes                                | `npm`, `yarn`, `pnpm`, `bun`                             |
+| `root_dir`      | Base path of the project                                         | No (default: `./`)                 | `./test`, `./frontend`, `./app`                          |
+| `serve_command` | Command to serve the project                                     | Yes                                | `npm run start`, `yarn start`, `pnpm start`, `bun start` |
+| `domain`        | Domain for preview URLs                                          | No (default: `pr.catshoulder.dev`) | `your.domain.com`                                        |
+| `github_user`   | Github user for actions                                          | No (default: `pr.catshoulder.dev`) | `your.domain.com`                                        |
+| `github_pat`    | GitHub personal access token with write access to the repository | Yes                                | `${{ secrets.GHCR_PAT }}`                                |
+| `kube_config`   | Kubernetes config for deploying the preview                      | Yes                                | `${{ secrets.KUBE_CONFIG }}`                             |
 
-Add the following secrets to your repository:
-
-- `GITHUB_TOKEN`: GitHub token with write access to the repository
 
 ## License
 

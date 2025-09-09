@@ -1,11 +1,7 @@
 {
-  "name": "ui.pr.new",
-  "version": "0.1.6",
-  "main": "./dist/index.js",
+  "name": "pr.catshoulder.dev",
+  "version": "0.1.8",
   "type": "module",
-  "scripts": {
-    "build": "ncc build main.js -o dist --license license.txt"
-  },
   "keywords": [
     "github",
     "action",
@@ -18,15 +14,5 @@
   ],
   "author": "sayjeyhi",
   "license": "MIT",
-  "description": "GitHub Action for running commands in a WebContainer and posting results as PR comments",
-  "engines": {
-    "node": ">=20"
-  },
-  "devDependencies": {
-    "@vercel/ncc": "^0.38.3"
-  },
-  "dependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.1"
-  }
+  "description": "GitHub Action for running commands in a WebContainer and posting results as PR comments"
 }

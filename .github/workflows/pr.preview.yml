@@ -1,3 +1,5 @@
+name: Deploy WebContainer Using pr.catshoulder.dev
+
 on:
   pull_request:
     types: [opened, synchronize]
@@ -7,17 +9,16 @@ permissions:
   pull-requests: write
 
 jobs:
-  preview:
+  preview-webcontainer:
     runs-on: ubuntu-latest
     steps:
       - name: UI PR preview
-        uses: sayjeyhi/ui.pr.new@v0.1.0
+        uses: sayjeyhi/pr.catshoulder.dev@v0.1.8
         with:
-          base_path: ./test
-          static_path: ./test/dist
-          pkg_manager: bun
-          build_command: bun build
-          serve_command: bun start
-          port: 3000
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pkg_manager: pnpm
+          root_dir: ./example
+          serve_command: pnpm start
+          domain: pr.catshoulder.dev
+          github_user: sayjeyhi
+          github_pat: ${{ secrets.GHCR_PAT }}
+          kube_config: ${{ secrets.KUBE_CONFIG }}
