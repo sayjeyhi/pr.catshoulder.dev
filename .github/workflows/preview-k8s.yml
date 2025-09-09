@@ -43,7 +43,7 @@ jobs:
           sed -i 's|{{PR_NUMBER}}|'"${{ github.event.pull_request.number }}"'|g' ./app/dist/index.html
           sed -i 's|{{PR_TITLE}}|'"${{ github.event.pull_request.title }}"'|g' ./app/dist/index.html
           sed -i 's|{{PR_AUTHOR}}|'"${{ github.event.pull_request.user.login }}"'|g' ./app/dist/index.html
-          sed -i 's|{{BRANCH}}|''"${{ github.event.pull_request.head.ref }}"'|g' ./app/dist/index.html
+          sed -i 's|{{BRANCH}}|'"${{ github.event.pull_request.head.ref }}"'|g' ./app/dist/index.html
           sed -i 's|{{PR_NUMBER}}|'"${{ github.event.pull_request.number }}"'|g' ./app/dist/nginx.conf
           cat ./app/dist/index.html
           cat ./app/dist/nginx.conf
