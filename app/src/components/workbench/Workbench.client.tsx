@@ -55,7 +55,7 @@ export const Workbench = memo(({ metadata: _metadata, updateChatMestaData: _upda
   };
 
   useEffect(() => {
-    if (gitReady) {
+    if (gitReady && window.repoConfig?.url) {
       importRepo(window.repoConfig.url)
     }
   }, [gitReady]);
