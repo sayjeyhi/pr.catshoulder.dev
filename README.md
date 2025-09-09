@@ -15,21 +15,22 @@ Automatically build and preview your UI in a GitHub Action using WebContainers a
 Create a `pr.preview.yml` file in .github/workflows and use the following template:
 
 ```yaml
-name: Deploy WebContainer Using pr.catshoulder.dev
+name: Deploy WebContainer
 
 on:
   pull_request:
     types: [opened, synchronize]
+
 jobs:
   preview-webcontainer:
     runs-on: ubuntu-latest
     steps:
       - name: UI PR preview
-        uses: sayjeyhi/pr.catshoulder.dev@v0.1.0
+        uses: sayjeyhi/pr.catshoulder.dev@v0.1.9
         with:
-          pkg_manager: pnpm
           root_dir: ./example
-          serve_command: pnpm start
+          pkg_manager: pnpm
+          serve_command: pnpm run dev
           domain: pr.catshoulder.dev
           github_user: sayjeyhi
           github_pat: ${{ secrets.GHCR_PAT }}
