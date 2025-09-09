@@ -12,7 +12,7 @@ import { createScopedLogger } from '~/utils/logger';
 const logger = createScopedLogger('Terminal');
 
 const MAX_TERMINALS = 3;
-export const DEFAULT_TERMINAL_SIZE = 25;
+export const DEFAULT_TERMINAL_SIZE = 35;
 
 export const TerminalTabs = memo(() => {
   const showTerminal = useStore(workbenchStore.showTerminal);
@@ -152,7 +152,7 @@ export const TerminalTabs = memo(() => {
                       onClick={() => setActiveTerminal(index)}
                     >
                       <div className="i-ph:terminal-window-duotone text-lg" />
-                      Bolt Terminal
+                      Preview Terminal
                     </button>
                   ) : (
                     <React.Fragment>

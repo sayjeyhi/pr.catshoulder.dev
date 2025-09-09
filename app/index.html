@@ -10,7 +10,7 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-        window.repoConfig = {
+        window.repoConfig2 = {
           name: '{{REPO_NAME}}',
           commit: '{{REPO_COMMIT}}',
           url: '{{REPO_URL}}',
@@ -23,11 +23,7 @@
           rootDir: '{{ROOT_DIR}}',
           serveCommand: '{{SERVE_COMMAND}}',
         };
-        if (repoConfig.url !== '{{REPO_URL}}') {
-          document.title = `pr.catshoulder.dev - ${repoConfig.name}`;
-        } else {
-          console.error('REPO_URL is not defined');
-        }
+        document.title = `${repoConfig.prTitle} | ${repoConfig.name} | pr.catshoulder.dev`;
     </script>
   </body>
 </html>

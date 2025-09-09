@@ -50,7 +50,6 @@ export const Workbench = memo(({ metadata: _metadata, updateChatMestaData: _upda
   const hasPreview = useStore(computed(workbenchStore.previews, (previews) => previews.length > 0));
   const files = useStore(workbenchStore.files);
   const showTerminal = useStore(workbenchStore.showTerminal);
-
   const setSelectedView = (view: WorkbenchViewType) => {
     workbenchStore.currentView.set(view);
   };
@@ -66,6 +65,19 @@ export const Workbench = memo(({ metadata: _metadata, updateChatMestaData: _upda
       setSelectedView('preview');
     }
   }, [hasPreview]);
+
+  useEffect(() => {
+    async function startProject() {
+      console.log("Start running commands");
+      await workbenchStore.runShellCommand(`cd`, [window.repoConfig.rootDir]);
+      await workbenchStore.runShellCommand(window.repoConfig.packageManager, ['install']);
+      await workbenchStore.runShellCommand(window.repoConfig.serveCommand);
+    }
+
+    if (!loading) {
+      startProject();
+    }
+  }, [loading]);
 
   return (
     <motion.div initial="open" variants={workbenchVariants} className="z-workbench">
@@ -93,7 +105,7 @@ export const Workbench = memo(({ metadata: _metadata, updateChatMestaData: _upda
                             Getting files...
                           </div>
                         ) : (
-                          <FileTree className="h-full" files={files} hideRoot rootFolder={WORK_DIR} />
+                          <FileTree className="h-full" files={files} hideRoot={false} rootFolder={WORK_DIR} />
                         )}
                       </div>
                     </Panel>

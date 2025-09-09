@@ -156,7 +156,7 @@ export class ActionRunner {
     try {
       switch (action.type) {
         case 'shell': {
-          await this.#runShellAction(action);
+          await this.runShellAction(action);
           break;
         }
         case 'file': {
@@ -247,7 +247,8 @@ export class ActionRunner {
     }
   }
 
-  async #runShellAction(action: ActionState) {
+  // TODO: refactor to use #runShellAction
+  async runShellAction(action: ActionState) {
     if (action.type !== 'shell') {
       unreachable('Expected shell action');
     }
@@ -333,35 +334,6 @@ export class ActionRunner {
     const actions = this.actions.get();
 
     this.actions.setKey(id, { ...actions[id], ...newState });
-  }
-
-  async getFileHistory(filePath: string): Promise<FileHistory | null> {
-    try {
-      const webcontainer = await this.#webcontainer;
-      const historyPath = this.#getHistoryPath(filePath);
-      const content = await webcontainer.fs.readFile(historyPath, 'utf-8');
-
-      return JSON.parse(content);
-    } catch (error) {
-      logger.error('Failed to get file history:', error);
-      return null;
-    }
-  }
-
-  async saveFileHistory(filePath: string, history: FileHistory) {
-    // const webcontainer = await this.#webcontainer;
-    const historyPath = this.#getHistoryPath(filePath);
-
-    await this.#runFileAction({
-      type: 'file',
-      filePath: historyPath,
-      content: JSON.stringify(history),
-      changeSource: 'auto-save',
-    } as any);
-  }
-
-  #getHistoryPath(filePath: string) {
-    return nodePath.join('.history', filePath);
   }
 
   async #runBuildAction(action: ActionState) {
@@ -499,54 +471,4 @@ export class ActionRunner {
     }
   }
 
-  // Add this method declaration to the class
-  handleDeployAction(
-    stage: 'building' | 'deploying' | 'complete',
-    status: ActionStatus,
-    details?: {
-      url?: string;
-      error?: string;
-      source?: 'netlify' | 'vercel' | 'github';
-    },
-  ): void {
-    if (!this.onDeployAlert) {
-      logger.debug('No deploy alert handler registered');
-      return;
-    }
-
-    const alertType = status === 'failed' ? 'error' : status === 'complete' ? 'success' : 'info';
-
-    const title =
-      stage === 'building'
-        ? 'Building Application'
-        : stage === 'deploying'
-          ? 'Deploying Application'
-          : 'Deployment Complete';
-
-    const description =
-      status === 'failed'
-        ? `${stage === 'building' ? 'Build' : 'Deployment'} failed`
-        : status === 'running'
-          ? `${stage === 'building' ? 'Building' : 'Deploying'} your application...`
-          : status === 'complete'
-            ? `${stage === 'building' ? 'Build' : 'Deployment'} completed successfully`
-            : `Preparing to ${stage === 'building' ? 'build' : 'deploy'} your application`;
-
-    const buildStatus =
-      stage === 'building' ? status : stage === 'deploying' || stage === 'complete' ? 'complete' : 'pending';
-
-    const deployStatus = stage === 'building' ? 'pending' : status;
-
-    this.onDeployAlert({
-      type: alertType,
-      title,
-      description,
-      content: details?.error || '',
-      url: details?.url,
-      stage,
-      buildStatus: buildStatus as any,
-      deployStatus: deployStatus as any,
-      source: details?.source || 'netlify',
-    });
-  }
 }

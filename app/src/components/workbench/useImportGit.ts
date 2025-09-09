@@ -62,33 +62,8 @@ export function useImportGit() {
         const commands = await detectProjectCommands(fileContents);
         const commandsMessage = createCommandsMessage(commands);
 
-        const filesMessage: Message = {
-          role: 'assistant',
-          content: `Cloning the repo ${repoUrl} into ${workdir}
-<boltArtifact id="imported-files" title="Git Cloned Files"  type="bundled">
-${fileContents
-  .map(
-    (file) =>
-      `<boltAction type="file" filePath="${file.path}">
-${escapeBoltTags(file.content)}
-</boltAction>`,
-  )
-  .join('\n')}
-</boltArtifact>`,
-          id: generateId(),
-          createdAt: new Date(),
-        };
+        console.log(commandsMessage)
 
-        const messages = [filesMessage];
-
-        if (commandsMessage) {
-          messages.push({
-            role: 'user',
-            id: generateId(),
-            content: 'Setup the codebase and Start the application',
-          });
-          messages.push(commandsMessage);
-        }
         setLoading(false);
       } catch (error) {
         console.error('Error during import:', error);

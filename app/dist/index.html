@@ -4,14 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ui.pr.new</title>
-    <script type="module" crossorigin src="/assets/index-CB9E5vC3.js"></script>
+    <title>pr.catshoulder.dev</title>
+    <script type="module" crossorigin src="/assets/index-BbhiCOZm.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-SnV_bFfr.css">
   </head>
   <body>
     <div id="root"></div>
     <script>
-        window.repoConfig = {
+        document.title = `ui.pr.new - ${repoConfig.name}`;
+        window.repoConfig2 = {
           name: '{{REPO_NAME}}',
           commit: '{{REPO_COMMIT}}',
           url: '{{REPO_URL}}',
@@ -20,12 +21,11 @@
           prTitle: '{{PR_TITLE}}',
           prAuthor: '{{PR_AUTHOR}}',
           branch: '{{BRANCH}}',
+          packageManager: '{{PKG_MANAGER}}',
+          rootDir: '{{ROOT_DIR}}',
+          serveCommand: '{{SERVE_COMMAND}}',
         };
-        if (repoConfig.url !== '{{REPO_URL}}') {
-          document.title = `ui.pr.new - ${repoConfig.name}`;
-        } else {
-          console.error('REPO_URL is not defined');
-        }
+        document.title = `${repoConfig.prTitle} | ${repoConfig.name} | pr.catshoulder.dev`;
     </script>
   </body>
 </html>

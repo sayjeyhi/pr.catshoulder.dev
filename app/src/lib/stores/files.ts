@@ -145,48 +145,6 @@ export class FilesStore {
     this.#modifiedFiles.clear();
   }
 
-  async saveFile(filePath: string, content: string) {
-    const webcontainer = await this.#webcontainer;
-
-    try {
-      const relativePath = path.relative(webcontainer.workdir, filePath);
-
-      if (!relativePath) {
-        throw new Error(`EINVAL: invalid file path, write '${relativePath}'`);
-      }
-
-      const oldContent = this.getFile(filePath)?.content;
-
-      if (!oldContent && oldContent !== '') {
-        unreachable('Expected content to be defined');
-      }
-
-      await webcontainer.fs.writeFile(relativePath, content);
-
-      if (!this.#modifiedFiles.has(filePath)) {
-        this.#modifiedFiles.set(filePath, oldContent);
-      }
-
-      // Get the current lock state before updating
-      const currentFile = this.files.get()[filePath];
-      const isLocked = currentFile?.type === 'file' ? currentFile.isLocked : false;
-
-      // we immediately update the file and don't rely on the `change` event coming from the watcher
-      this.files.setKey(filePath, {
-        type: 'file',
-        content,
-        isBinary: false,
-        isLocked,
-      });
-
-      logger.info('File updated');
-    } catch (error) {
-      logger.error('Failed to update file content\n\n', error);
-
-      throw error;
-    }
-  }
-
   async #init() {
     const webcontainer = await this.#webcontainer;
 
