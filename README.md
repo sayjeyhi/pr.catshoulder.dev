@@ -41,7 +41,7 @@ jobs:
 
 | Option          | Description                                                      | Required                           | Example                                                  |
 |-----------------|------------------------------------------------------------------|------------------------------------|----------------------------------------------------------|
-| `pkg_manager`   | Package manager to use                                           | Yes                                | `npm`, `yarn`, `pnpm`, `bun`                             |
+| `pkg_manager`   | Package manager to use                                           | Yes                                | `npm`, `pnpm`                                            |
 | `root_dir`      | Base path of the project                                         | No (default: `./`)                 | `./test`, `./frontend`, `./app`                          |
 | `serve_command` | Command to serve the project                                     | Yes                                | `npm run start`, `yarn start`, `pnpm start`, `bun start` |
 | `domain`        | Domain for preview URLs                                          | No (default: `pr.catshoulder.dev`) | `your.domain.com`                                        |
