@@ -113,11 +113,5 @@ jobs:
               issue_number,
               owner,
               repo,
-              body: `\n
-                ## 🌐 WebContainer Dual Terminal Preview
-                **[📱 Open Dual Terminal Interface](https://${{ github.event.pull_request.number }}.pr.catshoulder.dev)**
-            
-                This WebContainer runs in your browser.
-                ---
-                <sup>Dual terminal preview generated for PR #${{ github.event.pull_request.number }}</sup>`
+              body: `## 🌐 WebContainer Dual Terminal Preview\n**[📱 Open Dual Terminal Interface](https://${{ github.event.pull_request.number }}.pr.catshoulder.dev)**`
             });
